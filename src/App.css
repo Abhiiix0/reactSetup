@@ -1,0 +1,11 @@
+.navbar {
+  display: none !important;
+    background-color: rgba(0, 0, 255, 0.5); /* Blue with transparency */
+    backdrop-filter: blur(10px); /* Apply blur effect */
+    -webkit-backdrop-filter: blur(10px); /* For Safari compatibility */
+    color: white; /* Text color to white for contrast */
+    padding: 1rem; /* Adjust padding */
+    border-radius: 10px; /* Optional: rounded corners for the glass effect */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional: soft shadow */
+    transition: background-color 0.3s ease; /* Smooth transition */
+  }

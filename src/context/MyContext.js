@@ -6,13 +6,10 @@ const MyContext = createContext();
 
 // Create the provider component
 export const MyProvider = ({ children }) => {
-  const [message, setMessage] = useState("Hello from Context!");
-
-  // Add any other state or logic here
-  const updateMessage = (newMessage) => setMessage(newMessage);
+  const [createMatchModal, setcreateMatchModal] = useState(false);
 
   return (
-    <MyContext.Provider value={{ message, updateMessage }}>
+    <MyContext.Provider value={{ createMatchModal, setcreateMatchModal }}>
       {children}
     </MyContext.Provider>
   );
