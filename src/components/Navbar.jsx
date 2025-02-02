@@ -1,15 +1,18 @@
 import { Link } from "react-router-dom";
 import { MdOutlineMenu } from "react-icons/md";
-import { Drawer } from "antd";
+import { Button, Drawer, Input, Modal } from "antd";
 import { useState, useEffect } from "react";
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import CreateMatchModal from "../pages/CreateMatchModal";
 import { toast } from "react-toastify";
+import { addDoc, collection } from "firebase/firestore";
+import { db } from "../firebaseConfig/firebase";
+import CreateTournament from "./CreateTournament";
 
 const Navbar = () => {
   const [createMatchModal, setcreateMatchModal] = useState(false);
+  const [TournamentMOdal, setTournamentMOdal] = useState(false);
   const handleMatchCreated = () => {
-    // Logic to refresh the match list (if needed)
     toast.success("Match created successfully!");
   };
   async function closeModal() {
@@ -43,6 +46,8 @@ const Navbar = () => {
     }
   };
 
+  const [tournamentModalVisible, setTournamentModalVisible] = useState(false);
+
   return (
     <div>
       <nav className="flex fixed z-50 top-0 left-0 w-full bg-blue-600 text-white h-20 items-center px-3 md:px-8 justify-between border-b">
@@ -58,6 +63,9 @@ const Navbar = () => {
             </>
           ) : (
             <>
+              <button onClick={() => setTournamentModalVisible(true)}>
+                Create Tournament
+              </button>
               <Link
                 to="/my-matches"
                 className=" uppercase font-medium cursor-pointer"
@@ -80,6 +88,11 @@ const Navbar = () => {
           )}
         </div>
       </nav>
+
+      <CreateTournament
+        setTournamentModalVisible={setTournamentModalVisible}
+        tournamentModalVisible={tournamentModalVisible}
+      ></CreateTournament>
       <Drawer title="Menu" onClose={onClose} open={open}>
         {!user ? (
           <div className=" flex flex-col gap-4">

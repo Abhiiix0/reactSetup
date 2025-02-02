@@ -8,16 +8,22 @@ import {
   updateDoc,
   where,
   query,
+  addDoc,
 } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { Modal, Button, Input, Select, Table } from "antd";
 import Navbar from "../components/Navbar";
 import { getAuth } from "firebase/auth";
+import TournamentTeamsPvtPage from "../components/TournamentTeamsPvtPage";
 
 const PrivatePage = () => {
   const [matches, setMatches] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState(null);
+  const [tournamentModalVisible, setTournamentModalVisible] = useState(false);
+  const [tournamentName, setTournamentName] = useState("");
+  const [tournaments, setTournaments] = useState([]);
+  const [editTournamentId, setEditTournamentId] = useState(null);
   const [updatedGoalsA, setUpdatedGoalsA] = useState(0);
   const [updatedGoalsB, setUpdatedGoalsB] = useState(0);
   const [playersA, setPlayersA] = useState([
@@ -27,8 +33,6 @@ const PrivatePage = () => {
     { name: "", goals: 0, assists: 0 },
   ]);
   const [winner, setWinner] = useState(""); // State for selected winner
-  const navigate = useNavigate();
-
   // Fetch matches from Firestore
   // Get current user's uid
   const auth = getAuth();
@@ -46,13 +50,11 @@ const PrivatePage = () => {
         collection(db, "matches"),
         where("userId", "==", user.uid) // Filter matches by userId
       );
-
       const querySnapshot = await getDocs(q);
       const matchData = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
-
       setMatches(matchData);
       console.log(matchData);
     } catch (error) {
@@ -162,7 +164,7 @@ const PrivatePage = () => {
             {matches.map((match) => (
               <div
                 key={match.id}
-                className="border w-full sm:w-[400px] bg-blue-200 text-white text-center rounded-sm shadow"
+                className="border w-full rounded-sm shadow sm:w-[400px] bg-blue-200 text-white text-center "
               >
                 <div className=" border-b flex min-h-12 max-h-fit">
                   <p className="grid place-content-center capitalize font-medium    w-[50%]">
@@ -211,8 +213,7 @@ const PrivatePage = () => {
           <p>No matches available.</p>
         )}
       </div>
-
-      {/* AntD Modal */}
+      <TournamentTeamsPvtPage />
       {/* AntD Modal with Table Format */}
       <Modal
         title="Update Match Score"

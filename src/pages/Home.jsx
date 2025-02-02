@@ -17,6 +17,7 @@ const Home = () => {
           id: doc.id,
           ...doc.data(),
         }));
+        console.log(matchData);
         setMatches(matchData);
       }
     );
