@@ -7,9 +7,13 @@ import {
   deleteDoc,
   doc,
   updateDoc,
+  addDoc,
 } from "firebase/firestore";
+import MatchDataUpdate from "./MatchDataUpdate";
 
 const TournamentTeamsPvtPage = () => {
+  const [updateMatchModal, setupdateMatchModal] = useState(false);
+  const [setMatchData, setsetMatchData] = useState({});
   const [tournaments, setTournaments] = useState([]);
   const [editingTournament, setEditingTournament] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -25,88 +29,6 @@ const TournamentTeamsPvtPage = () => {
   const [expandedRounds, setExpandedRounds] = useState({});
   const [selectedWinningTeam, setSelectedWinningTeam] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState("on"); // New state for active/inactive toggle
-
-  const [matches, setMatches] = useState([]); // Replace with your data fetching logic
-  const [isMatchModalVisible, setIsMatchModalVisible] = useState(false);
-  const [selectedMatch, setSelectedMatch] = useState(null);
-  const [updatedGoalA, setUpdatedGoalA] = useState(0);
-  const [updatedGoalB, setUpdatedGoalB] = useState(0);
-  const [playersA, setPlayersA] = useState([
-    { name: "", goals: 0, assists: 0 },
-  ]);
-  const [playersB, setPlayersB] = useState([
-    { name: "", goals: 0, assists: 0 },
-  ]);
-  const [winner, setWinner] = useState("");
-
-  const openMatchModal = (match) => {
-    setSelectedMatch(match);
-    setUpdatedGoalA(match.goalA);
-    setUpdatedGoalB(match.goalB);
-    setPlayersA(match.playersA);
-    setPlayersB(match.playersB);
-    setWinner(match.winner || "");
-    setIsMatchModalVisible(true);
-  };
-
-  const handleMatchModalClose = () => {
-    setIsMatchModalVisible(false);
-    setSelectedMatch(null);
-  };
-
-  const handlePlayerChange = (team, index, field, value) => {
-    const updatedPlayers = team === "A" ? [...playersA] : [...playersB];
-    updatedPlayers[index][field] = value;
-
-    if (team === "A") {
-      setPlayersA(updatedPlayers);
-    } else {
-      setPlayersB(updatedPlayers);
-    }
-  };
-
-  const handleUpdate = async () => {
-    if (!selectedMatch) return;
-
-    try {
-      const totalGoalsA = playersA.reduce(
-        (total, player) => total + parseInt(player.goals || 0),
-        0
-      );
-      const totalGoalsB = playersB.reduce(
-        (total, player) => total + parseInt(player.goals || 0),
-        0
-      );
-
-      await updateDoc(doc(db, "matches", selectedMatch.id), {
-        goalA: totalGoalsA,
-        goalB: totalGoalsB,
-        playersA,
-        playersB,
-        winner,
-      });
-
-      // Update matches state to reflect changes
-      setMatches(
-        matches.map((match) =>
-          match.id === selectedMatch.id
-            ? {
-                ...match,
-                goalA: totalGoalsA,
-                goalB: totalGoalsB,
-                playersA,
-                playersB,
-                winner,
-              }
-            : match
-        )
-      );
-
-      handleMatchModalClose();
-    } catch (error) {
-      console.error("Error updating match:", error);
-    }
-  };
 
   useEffect(() => {
     const fetchTournaments = async () => {
@@ -162,7 +84,7 @@ const TournamentTeamsPvtPage = () => {
     setSelectedTeamB(null);
   };
 
-  const saveMatch = () => {
+  const saveMatch = async () => {
     if (!selectedTeamA || !selectedTeamB || selectedTeamA === selectedTeamB) {
       alert("Please select two different teams.");
       return;
@@ -187,17 +109,55 @@ const TournamentTeamsPvtPage = () => {
       goalB: 0,
       date: "",
       winner: "",
+      tournament: true,
+      tournamentId: editingTournament?.id,
     };
 
-    // Update the selected round with the new match
-    const updatedRounds = rounds.map((round, index) =>
-      index === selectedRoundIndex
-        ? { ...round, matches: [...round.matches, newMatch] }
-        : round
-    );
+    try {
+      // Save the match to Firestore and get the document ID
+      const matchRef = await addDoc(collection(db, "matches"), newMatch);
+      const matchWithId = { ...newMatch, id: matchRef.id };
 
-    setRounds(updatedRounds);
-    handleMatchModalClose();
+      // Update the selected round with the new match
+      const updatedRounds = rounds.map((round, index) =>
+        index === selectedRoundIndex
+          ? { ...round, matches: [...round.matches, matchWithId] }
+          : round
+      );
+
+      // Update the rounds state with the new match
+      setRounds(updatedRounds);
+
+      // Now update the tournament document in Firestore
+      if (editingTournament?.id) {
+        const tournamentRef = doc(db, "tournaments", editingTournament.id);
+        const tournamentDoc = await getDoc(tournamentRef);
+
+        if (tournamentDoc.exists()) {
+          const tournamentData = tournamentDoc.data();
+
+          // Update the tournament rounds
+          const updatedTournamentRounds = tournamentData.rounds.map(
+            (round, index) =>
+              index === selectedRoundIndex
+                ? { ...round, matches: [...round.matches, matchWithId] }
+                : round
+          );
+
+          // Save the updated tournament document
+          await updateDoc(tournamentRef, {
+            rounds: updatedTournamentRounds,
+          });
+        } else {
+          console.error("Tournament not found");
+        }
+      }
+
+      // Close the match modal
+      handleMatchModalClose();
+    } catch (error) {
+      console.error("Error creating match and updating tournament:", error);
+    }
   };
 
   const saveTournament = async () => {
@@ -380,7 +340,15 @@ const TournamentTeamsPvtPage = () => {
                         <p>Winner: {match.winner || "TBD"}</p>
                       </div>
                       <div className=" flex flex-col gap-1">
-                        <Button type="primary">Edit</Button>
+                        <Button
+                          type="primary"
+                          onClick={() => {
+                            setsetMatchData(match?.id),
+                              setupdateMatchModal(true);
+                          }}
+                        >
+                          Edit
+                        </Button>
                         <Button onClick={() => deleteMatch(index, i)} danger>
                           Delete
                         </Button>
@@ -438,74 +406,11 @@ const TournamentTeamsPvtPage = () => {
         </Button>
       </Modal>
 
-      {/* Edit Match Modal */}
-      <Modal
-        title="Edit Match Score"
-        open={isMatchModalVisible}
-        onCancel={handleMatchModalClose}
-        onOk={handleUpdate}
-        okText="Update"
-        cancelText="Cancel"
-      >
-        {/* Players A */}
-        <h3>Team A Players</h3>
-        <div>
-          {playersA.map((player, index) => (
-            <div key={index} className="player-edit">
-              <Input
-                value={player.name}
-                onChange={(e) =>
-                  handlePlayerChange("A", index, "name", e.target.value)
-                }
-                placeholder="Player Name"
-              />
-              <Input
-                value={player.goals}
-                onChange={(e) =>
-                  handlePlayerChange("A", index, "goals", e.target.value)
-                }
-                type="number"
-                placeholder="Goals"
-              />
-            </div>
-          ))}
-        </div>
-
-        {/* Players B */}
-        <h3>Team B Players</h3>
-        <div>
-          {playersB.map((player, index) => (
-            <div key={index} className="player-edit">
-              <Input
-                value={player.name}
-                onChange={(e) =>
-                  handlePlayerChange("B", index, "name", e.target.value)
-                }
-                placeholder="Player Name"
-              />
-              <Input
-                value={player.goals}
-                onChange={(e) =>
-                  handlePlayerChange("B", index, "goals", e.target.value)
-                }
-                type="number"
-                placeholder="Goals"
-              />
-            </div>
-          ))}
-        </div>
-
-        {/* Select Winner */}
-        <Select
-          value={winner}
-          onChange={setWinner}
-          options={[
-            { value: match.teamA, label: match.teamA },
-            { value: match.teamB, label: match.teamB },
-            { value: "", label: "None" },
-          ]}
-        />
-      </Modal>
+      <MatchDataUpdate
+        open={updateMatchModal}
+        close={setupdateMatchModal}
+        matchId={setMatchData}
+      />
     </div>
   );
 };
