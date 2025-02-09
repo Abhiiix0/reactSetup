@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../firebaseConfig/firebase";
 import { Modal, Table } from "antd";
+import ShowTournament from "../components/ShowTournament";
 
 const Home = () => {
   const [matches, setMatches] = useState([]);
@@ -13,10 +14,12 @@ const Home = () => {
     const unsubscribe = onSnapshot(
       collection(db, "matches"),
       (querySnapshot) => {
-        const matchData = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+        const matchData = querySnapshot.docs
+          .map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }))
+          .filter((match) => !match.tournamentId);
         console.log(matchData);
         setMatches(matchData);
       }
@@ -95,7 +98,7 @@ const Home = () => {
       align: "center",
     },
   ];
-
+  const [matchBtn, setmatchBtn] = useState("match");
   return (
     <div
       className="relative min-h-screen bg-cover bg-center"
@@ -108,132 +111,157 @@ const Home = () => {
 
       <div className="relative z-10">
         <Navbar />
-        <div className="pt-[110px] h-screen overflow-y-scroll pb-10 relative z-10">
-          {matches.length > 0 ? (
-            <div className="flex flex-col justify-center items-center px-2 gap-3">
-              {matches.map((match) => {
-                return (
-                  <div
-                    onClick={() => showMatchDetails(match)}
-                    key={match.id}
-                    className="border w-full sm:w-[400px] bg-blue-400 text-white text-center rounded-sm shadow cursor-pointer"
-                  >
-                    {/* Team Names with Win/Lose Status */}
-                    <div className="border-b flex min-h-12 max-h-fit">
-                      <p className="grid place-content-center capitalize font-medium w-[50%]">
-                        {match.teamA}
-                      </p>
-                      <p className="w-fit px-2 grid place-content-center text-black font-bold">
-                        Vs
-                      </p>
-                      <p className="grid text-sm place-content-center capitalize font-medium w-[50%]">
-                        {match.teamB}
-                      </p>
-                    </div>
-
-                    {/* Goals */}
-                    <div className="border-b flex h-12">
-                      <p className="grid place-content-center font-medium w-full">
-                        Goals: {match.goalA}
-                      </p>
-                      <p className="grid place-content-center font-medium border-l w-full">
-                        Goals: {match.goalB}
-                      </p>
-                    </div>
-                    {match?.winner && (
-                      <div className="border-b bg-green-500 justify-center items-center flex h-fit px-4 py-1">
-                        Winner <br />
-                        {match?.winner}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <p>No matches available.</p>
-          )}
-
-          {/* Modal for Team Details */}
-          <Modal
-            title="Match Details"
-            open={isModalVisible}
-            onCancel={() => setIsModalVisible(false)}
-            footer={null}
+        <div className=" mt-[80px] bg-white/50 mb-5 flex">
+          <button
+            onClick={() => setmatchBtn("match")}
+            className={` ${
+              matchBtn === "match" && "bg-blue-400 text-white"
+            } h-10 w-full   border-black border`}
           >
-            {selectedMatch && (
-              <div>
-                <div className="border-b flex min-h-12">
-                  <p className="grid place-content-center capitalize font-medium w-[50%]">
-                    {selectedMatch.teamA}
-                  </p>
-                  <p className="w-fit px-2 grid place-content-center text-black font-bold">
-                    Vs
-                  </p>
-                  <p className="grid text-sm place-content-center capitalize font-medium w-[50%]">
-                    {selectedMatch.teamB}
-                  </p>
-                </div>
-
-                {/* Team A Players Table */}
-                <h3
-                  className={`mt-4 ${
-                    selectedMatch.winner === selectedMatch.teamA
-                      ? "text-green-700"
-                      : selectedMatch.winner
-                      ? "text-gray-700"
-                      : "text-blue-600"
-                  }`}
-                >
-                  {selectedMatch.teamA}
-                </h3>
-                <Table
-                  dataSource={generateTableData(selectedMatch.playersA)}
-                  columns={playerColumns}
-                  pagination={false}
-                  size="small"
-                  rowClassName={(record) =>
-                    record.key === "total"
-                      ? "bg-gray-200 font-bold"
-                      : selectedMatch.winner === selectedMatch.teamA
-                      ? "bg-green-100"
-                      : selectedMatch.winner
-                      ? "bg-gray-100"
-                      : "bg-blue-100"
-                  }
-                />
-
-                {/* Team B Players Table */}
-                <h3
-                  className={`mt-4 ${
-                    selectedMatch.winner === selectedMatch.teamB
-                      ? "text-green-700"
-                      : selectedMatch.winner
-                      ? "text-gray-700"
-                      : "text-red-600"
-                  }`}
-                >
-                  {selectedMatch.teamB}
-                </h3>
-                <Table
-                  dataSource={generateTableData(selectedMatch.playersB)}
-                  columns={playerColumns}
-                  pagination={false}
-                  size="small"
-                  rowClassName={(record) =>
-                    record.key === "total"
-                      ? "bg-gray-200 font-bold"
-                      : selectedMatch.winner === selectedMatch.teamB
-                      ? "bg-green-100"
-                      : selectedMatch.winner
-                      ? "bg-gray-100"
-                      : "bg-blue-100"
-                  }
-                />
-              </div>
-            )}
-          </Modal>
+            Match
+          </button>
+          <button
+            onClick={() => setmatchBtn("Tournament")}
+            className={` ${
+              matchBtn === "Tournament" && "bg-blue-400 text-white"
+            } h-10 w-full   border-black border`}
+          >
+            Tournament
+          </button>
         </div>
+        {matchBtn === "match" && (
+          <div className="  pb-10 relative z-10">
+            {matches.length > 0 ? (
+              <div className="flex flex-col justify-center items-center px-2 gap-3">
+                {matches.map((match) => {
+                  return (
+                    <div
+                      onClick={() => showMatchDetails(match)}
+                      key={match.id}
+                      className="border w-full sm:w-[400px] bg-blue-400 text-white text-center rounded-sm shadow cursor-pointer"
+                    >
+                      {/* Team Names with Win/Lose Status */}
+                      <div className="border-b flex min-h-12 max-h-fit">
+                        <p className="grid place-content-center capitalize font-medium w-[50%]">
+                          {match.teamA}
+                        </p>
+                        <p className="w-fit px-2 grid place-content-center text-black font-bold">
+                          Vs
+                        </p>
+                        <p className="grid text-sm place-content-center capitalize font-medium w-[50%]">
+                          {match.teamB}
+                        </p>
+                      </div>
+
+                      {/* Goals */}
+                      <div className="border-b flex h-12">
+                        <p className="grid place-content-center font-medium w-full">
+                          Goals: {match.goalA}
+                        </p>
+                        <p className="grid place-content-center font-medium border-l w-full">
+                          Goals: {match.goalB}
+                        </p>
+                      </div>
+                      {match?.winner && (
+                        <div className="border-b bg-green-500 justify-center items-center flex h-fit px-4 py-1">
+                          Winner <br />
+                          {match?.winner}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p>No matches available.</p>
+            )}
+
+            {/* Modal for Team Details */}
+            <Modal
+              title="Match Details"
+              open={isModalVisible}
+              onCancel={() => setIsModalVisible(false)}
+              footer={null}
+            >
+              {selectedMatch && (
+                <div>
+                  <div className="border-b flex min-h-12">
+                    <p className="grid place-content-center capitalize font-medium w-[50%]">
+                      {selectedMatch.teamA}
+                    </p>
+                    <p className="w-fit px-2 grid place-content-center text-black font-bold">
+                      Vs
+                    </p>
+                    <p className="grid text-sm place-content-center capitalize font-medium w-[50%]">
+                      {selectedMatch.teamB}
+                    </p>
+                  </div>
+
+                  {/* Team A Players Table */}
+                  <h3
+                    className={`mt-4 ${
+                      selectedMatch.winner === selectedMatch.teamA
+                        ? "text-green-700"
+                        : selectedMatch.winner
+                        ? "text-gray-700"
+                        : "text-blue-600"
+                    }`}
+                  >
+                    {selectedMatch.teamA}
+                  </h3>
+                  <Table
+                    dataSource={generateTableData(selectedMatch.playersA)}
+                    columns={playerColumns}
+                    pagination={false}
+                    size="small"
+                    rowClassName={(record) =>
+                      record.key === "total"
+                        ? "bg-gray-200 font-bold"
+                        : selectedMatch.winner === selectedMatch.teamA
+                        ? "bg-green-100"
+                        : selectedMatch.winner
+                        ? "bg-gray-100"
+                        : "bg-blue-100"
+                    }
+                  />
+
+                  {/* Team B Players Table */}
+                  <h3
+                    className={`mt-4 ${
+                      selectedMatch.winner === selectedMatch.teamB
+                        ? "text-green-700"
+                        : selectedMatch.winner
+                        ? "text-gray-700"
+                        : "text-red-600"
+                    }`}
+                  >
+                    {selectedMatch.teamB}
+                  </h3>
+                  <Table
+                    dataSource={generateTableData(selectedMatch.playersB)}
+                    columns={playerColumns}
+                    pagination={false}
+                    size="small"
+                    rowClassName={(record) =>
+                      record.key === "total"
+                        ? "bg-gray-200 font-bold"
+                        : selectedMatch.winner === selectedMatch.teamB
+                        ? "bg-green-100"
+                        : selectedMatch.winner
+                        ? "bg-gray-100"
+                        : "bg-blue-100"
+                    }
+                  />
+                </div>
+              )}
+            </Modal>
+          </div>
+        )}
+        {matchBtn === "Tournament" && (
+          <div>
+            <ShowTournament />
+          </div>
+        )}
       </div>
     </div>
   );

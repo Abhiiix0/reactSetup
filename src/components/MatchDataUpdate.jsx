@@ -4,7 +4,12 @@ import { useState, useEffect } from "react";
 import { db } from "../firebaseConfig/firebase"; // Adjust the path if needed
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 
-const MatchDataUpdate = ({ open, close, matchId }) => {
+const MatchDataUpdate = ({
+  open,
+  close,
+  matchId,
+  fetchMatchesByTournamentId,
+}) => {
   const [matchData, setMatchData] = useState(null);
   const [playersA, setPlayersA] = useState([]);
   const [playersB, setPlayersB] = useState([]);
@@ -72,50 +77,16 @@ const MatchDataUpdate = ({ open, close, matchId }) => {
         (total, player) => total + parseInt(player.goals || 0),
         0
       );
-
-      // Update the match document in Firestore
-      const matchRef = doc(db, "matches", matchId);
-      await updateDoc(matchRef, {
+      console.log(totalGoalsA, totalGoalsB, playersA, playersB);
+      await updateDoc(doc(db, "matches", matchId), {
         goalA: totalGoalsA,
         goalB: totalGoalsB,
         playersA,
         playersB,
-        winner,
+        winner, // Add winner to the update
       });
-
-      // Now update the tournament document that contains this match ID
-      const tournamentRef = doc(db, "tournaments", matchData.tournamentId); // Assuming the tournamentId is stored in matchData
-      const tournamentDoc = await getDoc(tournamentRef);
-
-      if (tournamentDoc.exists()) {
-        const tournamentData = tournamentDoc.data();
-        const updatedRounds = tournamentData.rounds.map((round) => {
-          const updatedMatches = round.matches.map((match) => {
-            if (match.id === matchId) {
-              // Update the match in the rounds array
-              return {
-                ...match,
-                goalA: totalGoalsA,
-                goalB: totalGoalsB,
-                playersA,
-                playersB,
-                winner,
-              };
-            }
-            return match;
-          });
-          return { ...round, matches: updatedMatches };
-        });
-
-        // Save the updated tournament document
-        await updateDoc(tournamentRef, {
-          rounds: updatedRounds,
-        });
-
-        close(false); // Close modal after updating
-      } else {
-        console.error("Tournament not found");
-      }
+      fetchMatchesByTournamentId(matchData?.tournamentId);
+      close(false);
     } catch (error) {
       console.error("Error updating match and tournament:", error);
     }
@@ -144,6 +115,7 @@ const MatchDataUpdate = ({ open, close, matchId }) => {
             key: "name",
             render: (text, record, index) => (
               <Input
+                key={index}
                 value={text}
                 onChange={(e) =>
                   handlePlayerChange("A", index, "name", e.target.value)
@@ -159,6 +131,7 @@ const MatchDataUpdate = ({ open, close, matchId }) => {
             align: "center",
             render: (text, record, index) => (
               <Input
+                key={index}
                 type="number"
                 value={text}
                 onChange={(e) =>
@@ -175,6 +148,7 @@ const MatchDataUpdate = ({ open, close, matchId }) => {
             align: "center",
             render: (text, record, index) => (
               <Input
+                key={index}
                 type="number"
                 value={text}
                 onChange={(e) =>
@@ -199,6 +173,7 @@ const MatchDataUpdate = ({ open, close, matchId }) => {
             key: "name",
             render: (text, record, index) => (
               <Input
+                key={index}
                 value={text}
                 onChange={(e) =>
                   handlePlayerChange("B", index, "name", e.target.value)
@@ -214,6 +189,7 @@ const MatchDataUpdate = ({ open, close, matchId }) => {
             align: "center",
             render: (text, record, index) => (
               <Input
+                key={index}
                 type="number"
                 value={text}
                 onChange={(e) =>

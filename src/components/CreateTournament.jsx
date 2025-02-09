@@ -72,6 +72,7 @@ const CreateTournament = ({
       tournamentName,
       totalTeams: teams,
       tournamentWinner: "",
+      active: true,
     };
     try {
       await addDoc(collection(db, "tournaments"), tournamentData);
@@ -148,7 +149,7 @@ const CreateTournament = ({
             setCurrentTeam({ ...currentTeam, teamName: e.target.value })
           }
         />
-        {currentTeam.players.map((player, index) => (
+        {currentTeam?.players.map((player, index) => (
           <div key={index} className="flex gap-2 mt-2">
             <Input
               placeholder={`Player ${index + 1}`}

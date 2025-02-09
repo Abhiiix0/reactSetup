@@ -8,10 +8,9 @@ import {
   updateDoc,
   where,
   query,
-  addDoc,
+  onSnapshot,
 } from "firebase/firestore";
-import { useNavigate } from "react-router-dom";
-import { Modal, Button, Input, Select, Table } from "antd";
+import { Modal, Input, Select, Table } from "antd";
 import Navbar from "../components/Navbar";
 import { getAuth } from "firebase/auth";
 import TournamentTeamsPvtPage from "../components/TournamentTeamsPvtPage";
@@ -20,12 +19,6 @@ const PrivatePage = () => {
   const [matches, setMatches] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState(null);
-  const [tournamentModalVisible, setTournamentModalVisible] = useState(false);
-  const [tournamentName, setTournamentName] = useState("");
-  const [tournaments, setTournaments] = useState([]);
-  const [editTournamentId, setEditTournamentId] = useState(null);
-  const [updatedGoalsA, setUpdatedGoalsA] = useState(0);
-  const [updatedGoalsB, setUpdatedGoalsB] = useState(0);
   const [playersA, setPlayersA] = useState([
     { name: "", goals: 0, assists: 0 },
   ]);
@@ -37,6 +30,27 @@ const PrivatePage = () => {
   // Get current user's uid
   const auth = getAuth();
   const user = auth.currentUser;
+
+  // Real-time fetching of matches
+  useEffect(() => {
+    if (!user) {
+      console.error("User not authenticated");
+      return;
+    }
+
+    const q = query(collection(db, "matches"), where("userId", "==", user.uid));
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const matchData = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setMatches(matchData);
+      console.log("Real-time matches updated:", matchData);
+    });
+
+    return () => unsubscribe(); // Cleanup listener on unmount
+  }, [user]);
 
   const fetchMatches = async () => {
     try {
@@ -75,8 +89,6 @@ const PrivatePage = () => {
   // Open modal for updating a match
   const openModal = (match) => {
     setSelectedMatch(match);
-    setUpdatedGoalsA(match.goalA);
-    setUpdatedGoalsB(match.goalB);
     setPlayersA(match.playersA);
     setPlayersB(match.playersB);
     setWinner(match.winner || ""); // Set the winner from match data
@@ -154,66 +166,90 @@ const PrivatePage = () => {
   useEffect(() => {
     fetchMatches();
   }, []);
-
+  const [matchBtn, setmatchBtn] = useState("match");
   return (
     <div>
       <Navbar />
-      <div className="mt-[120px] mb-4 relative z-10">
-        {matches.length > 0 ? (
-          <div className="flex flex-col justify-center items-center px-2 gap-3">
-            {matches.map((match) => (
-              <div
-                key={match.id}
-                className="border w-full rounded-sm shadow sm:w-[400px] bg-blue-200 text-white text-center "
-              >
-                <div className=" border-b flex min-h-12 max-h-fit">
-                  <p className="grid place-content-center capitalize font-medium    w-[50%]">
-                    {match.teamA}
-                  </p>
-                  <p className=" w-fit px-2 grid place-content-center text-black font-bold">
-                    Vs
-                  </p>
-                  <p className=" grid text-sm place-content-center capitalize font-medium   w-[50%]">
-                    {match.teamB}
-                  </p>
-                </div>
-                <div className=" border-b flex h-12">
-                  <p className="grid place-content-center capitalize font-medium  w-full">
-                    {match.goalA}
-                  </p>
-                  <p className=" grid place-content-center capitalize font-medium border-l w-full">
-                    {match.goalB}
-                  </p>
-                </div>
-                <div>
-                  <div>
-                    <p className=" text-green-700 my-3">
-                      Winner : {match.winner || "Not Selected"}
+      <div className=" mt-[80px] mb-5 flex">
+        <button
+          onClick={() => setmatchBtn("match")}
+          className={` ${
+            matchBtn === "match" && "bg-blue-400 text-white"
+          } h-10 w-full   border-black border`}
+        >
+          Match
+        </button>
+        <button
+          onClick={() => setmatchBtn("Tournament")}
+          className={` ${
+            matchBtn === "Tournament" && "bg-blue-400 text-white"
+          } h-10 w-full   border-black border`}
+        >
+          Tournament
+        </button>
+      </div>
+      {matchBtn === "match" && (
+        <div className=" mb-4 relative z-10">
+          {matches.length > 0 ? (
+            <div className="flex flex-col justify-center items-center px-2 gap-3">
+              {matches.map((match) => (
+                <div
+                  key={match.id}
+                  className="border w-full rounded-sm shadow sm:w-[400px] bg-blue-200 text-white text-center "
+                >
+                  <div className=" border-b flex min-h-12 max-h-fit">
+                    <p className="grid place-content-center capitalize font-medium    w-[50%]">
+                      {match.teamA}
+                    </p>
+                    <p className=" w-fit px-2 grid place-content-center text-black font-bold">
+                      Vs
+                    </p>
+                    <p className=" grid text-sm place-content-center capitalize font-medium   w-[50%]">
+                      {match.teamB}
                     </p>
                   </div>
-                  <div className=" flex justify-center ">
-                    <button
-                      className="bg-blue-500 cursor-pointer w-[100px] h-10 rounded-none"
-                      onClick={() => openModal(match)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="bg-red-500 cursor-pointer w-[100px] h-10 rounded-none"
-                      onClick={() => handleDelete(match.id)}
-                    >
-                      Delete
-                    </button>
+                  <div className=" border-b flex h-12">
+                    <p className="grid place-content-center capitalize font-medium  w-full">
+                      {match.goalA}
+                    </p>
+                    <p className=" grid place-content-center capitalize font-medium border-l w-full">
+                      {match.goalB}
+                    </p>
+                  </div>
+                  <div>
+                    <div>
+                      <p className=" text-green-700 my-3">
+                        Winner : {match.winner || "Not Selected"}
+                      </p>
+                    </div>
+                    <div className=" flex justify-center ">
+                      <button
+                        className="bg-blue-500 cursor-pointer w-[100px] h-10 rounded-none"
+                        onClick={() => openModal(match)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="bg-red-500 cursor-pointer w-[100px] h-10 rounded-none"
+                        onClick={() => handleDelete(match.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p>No matches available.</p>
-        )}
-      </div>
-      <TournamentTeamsPvtPage />
+              ))}
+            </div>
+          ) : (
+            <p>No matches available.</p>
+          )}
+        </div>
+      )}
+      {matchBtn === "Tournament" && (
+        <div className=" px-2">
+          <TournamentTeamsPvtPage />
+        </div>
+      )}
       {/* AntD Modal with Table Format */}
       <Modal
         title="Update Match Score"

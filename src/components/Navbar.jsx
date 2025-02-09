@@ -120,6 +120,7 @@ const Navbar = () => {
             >
               My matches
             </Link>
+
             <button
               className="  text-start my-4 text-blue-500 uppercase font-medium cursor-pointer"
               onClick={() => {
@@ -128,6 +129,15 @@ const Navbar = () => {
               }}
             >
               Create match
+            </button>
+            <button
+              className="  text-start text-blue-500 uppercase mb-8 font-medium cursor-pointer"
+              onClick={() => {
+                setTournamentModalVisible(true);
+                onClose();
+              }}
+            >
+              Create Tournament
             </button>
             <button
               className=" bg-red-500 rounded cursor-pointer text-white py-2 px-4"
