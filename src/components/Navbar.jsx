@@ -1,17 +1,14 @@
 import { Link } from "react-router-dom";
 import { MdOutlineMenu } from "react-icons/md";
-import { Button, Drawer, Input, Modal } from "antd";
+import { Drawer } from "antd";
 import { useState, useEffect } from "react";
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import CreateMatchModal from "../pages/CreateMatchModal";
 import { toast } from "react-toastify";
-import { addDoc, collection } from "firebase/firestore";
-import { db } from "../firebaseConfig/firebase";
 import CreateTournament from "./CreateTournament";
 
 const Navbar = () => {
   const [createMatchModal, setcreateMatchModal] = useState(false);
-  const [TournamentMOdal, setTournamentMOdal] = useState(false);
   const handleMatchCreated = () => {
     toast.success("Match created successfully!");
   };
@@ -47,7 +44,7 @@ const Navbar = () => {
   };
 
   const [tournamentModalVisible, setTournamentModalVisible] = useState(false);
-
+  const [page, setpage] = useState("");
   return (
     <div>
       <nav className="flex fixed z-50 top-0 left-0 w-full bg-blue-600 text-white h-20 items-center px-3 md:px-8 justify-between border-b">
@@ -63,21 +60,28 @@ const Navbar = () => {
             </>
           ) : (
             <>
-              <button onClick={() => setTournamentModalVisible(true)}>
-                Create Tournament
-              </button>
-              <Link
-                to="/my-matches"
-                className=" uppercase font-medium cursor-pointer"
+              <button
+                className=" font-medium"
+                onClick={() => setTournamentModalVisible(true)}
               >
-                My Match&apos;s
-              </Link>
+                CREATE TOURNAMENT
+              </button>
+
               <button
                 className=" uppercase font-medium cursor-pointer"
                 onClick={() => setcreateMatchModal(true)}
               >
                 Create Match
               </button>
+              <Link
+                onClick={() => setpage("mymatch")}
+                to="/my-matches"
+                className={` ${
+                  page === "mymatch" && " underline"
+                } uppercase font-medium cursor-pointer`}
+              >
+                My Match&apos;s
+              </Link>
               <button
                 className=" bg-red-500 rounded cursor-pointer text-white py-2 px-4"
                 onClick={handleLogout}

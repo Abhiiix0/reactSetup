@@ -18,7 +18,7 @@ const Login = () => {
     try {
       await signInWithEmailAndPassword(auth, data.email, data.password);
       toast.success("Login Successfull");
-      Navigate("/private");
+      Navigate("/");
     } catch (error) {
       toast.error(error?.message || error);
     }
@@ -35,7 +35,7 @@ const Login = () => {
       <div className="absolute inset-0 bg-black/60"></div>
       <div className="relative z-10">
         <Navbar />
-        <div className="flex justify-center items-center min-h-screen">
+        <div className="flex mt-[80px] justify-center items-center min-h-screen">
           <div className="w-full max-w-[350px] p-6 bg-white rounded-2xl shadow-xl">
             <h2 className="text-xl font-bold text-center mb-6">Login</h2>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

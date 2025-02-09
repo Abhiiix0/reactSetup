@@ -229,6 +229,7 @@ const MatchDataUpdate = ({
           options={[
             { value: matchData.teamA, label: matchData.teamA },
             { value: matchData.teamB, label: matchData.teamB },
+            { value: "Draw", label: "Draw" },
             { value: "", label: "None" },
           ]}
         />

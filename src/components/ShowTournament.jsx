@@ -138,11 +138,11 @@ const ShowTournament = () => {
             <div
               onClick={() => handleSelectedTournament(tournament)}
               key={tournament.id}
-              className="p-4 w-full sm:w-[400px] border rounded-lg shadow-md bg-blue-100 cursor-pointer relative"
+              className="p-4 w-full mx-auto sm:w-[400px] border rounded-lg shadow-md bg-blue-100 cursor-pointer relative"
             >
               <span
                 className={`h-3 w-3 absolute top-2 right-2 rounded-full ${
-                  tournament?.active === "on" ? "bg-green-500" : "bg-red-500"
+                  tournament?.active ? "bg-green-500" : "bg-red-500"
                 }`}
               ></span>
               <h3 className="text-lg font-semibold">

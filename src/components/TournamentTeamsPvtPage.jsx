@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Button, Modal, Input, Select, Divider } from "antd";
+import { Button, Modal, Input, Select } from "antd";
 import { db } from "../firebaseConfig/firebase";
 import {
   collection,
@@ -13,6 +13,7 @@ import {
 } from "firebase/firestore";
 import MatchDataUpdate from "./MatchDataUpdate";
 import TournamentMatchCreation from "./TournamentMatchCreation";
+import { getAuth } from "firebase/auth";
 
 const TournamentTeamsPvtPage = () => {
   const [updateMatchModal, setupdateMatchModal] = useState(false);
@@ -26,9 +27,15 @@ const TournamentTeamsPvtPage = () => {
   const [selectedStatus, setSelectedStatus] = useState("on"); // New state for active/inactive toggle
   const [TournamentMatchs, setTournamentMatchs] = useState([]);
 
+  const auth = getAuth();
+  const user = auth.currentUser;
   // Fetch tournaments with real-time updates
   useEffect(() => {
-    const tournamentCollection = collection(db, "tournaments");
+    // const tournamentCollection = collection(db, "tournaments");
+    const tournamentCollection = query(
+      collection(db, "tournaments"),
+      where("userId", "==", user.uid)
+    );
     const unsubscribe = onSnapshot(tournamentCollection, (snapshot) => {
       const tournamentList = snapshot.docs.map((docSnap) => ({
         id: docSnap.id,
@@ -40,7 +47,11 @@ const TournamentTeamsPvtPage = () => {
     return () => unsubscribe(); // Cleanup listener on unmount
   }, []);
   const fetchTournaments = async () => {
-    const tournamentCollection = collection(db, "tournaments");
+    // const tournamentCollection = collection(db, "tournaments");
+    const tournamentCollection = query(
+      collection(db, "tournaments"),
+      where("userId", "==", user.uid)
+    );
     const tournamentSnapshot = await getDocs(tournamentCollection);
 
     const tournamentList = tournamentSnapshot.docs.map((docSnap) => {
@@ -193,7 +204,7 @@ const TournamentTeamsPvtPage = () => {
           </div>
         ))}
       </div>
-
+      {tournaments?.length === 0 && <p>No Tournaments available.</p>}
       {/* Edit Tournament Modal */}
       <Modal
         title="Edit Tournament"

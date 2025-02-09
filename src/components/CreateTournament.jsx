@@ -2,6 +2,7 @@ import { Button, Input, Modal } from "antd";
 import { useState } from "react";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../firebaseConfig/firebase";
+import { getAuth } from "firebase/auth";
 
 const CreateTournament = ({
   tournamentModalVisible,
@@ -66,13 +67,15 @@ const CreateTournament = ({
       players: currentTeam.players.filter((_, i) => i !== index),
     });
   };
-
+  const auth = getAuth();
+  const user = auth.currentUser;
   const saveTournament = async () => {
     const tournamentData = {
       tournamentName,
       totalTeams: teams,
       tournamentWinner: "",
       active: true,
+      userId: user.uid,
     };
     try {
       await addDoc(collection(db, "tournaments"), tournamentData);
@@ -103,14 +106,7 @@ const CreateTournament = ({
         />
         <div className="my-2 flex gap-2">
           <Button onClick={() => setTeamModalVisible(true)}>+ Add Team</Button>
-          <Button
-            onClick={() => setIsActive(!isActive)}
-            className={
-              isActive ? "bg-green-500 text-white" : "bg-gray-500 text-white"
-            }
-          >
-            {isActive ? "Deactivate" : "Activate"}
-          </Button>
+
           <Button onClick={saveTournament}>Save</Button>
         </div>
         {teams?.length !== 0 && <p className="font-medium mb-1">Teams</p>}

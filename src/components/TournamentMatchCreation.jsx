@@ -60,6 +60,7 @@ const TournamentMatchCreation = ({
     console.log("newMatch", newMatch);
     try {
       // Save the match to Firestore and get the document ID
+      // eslint-disable-next-line no-unused-vars
       const matchRef = await addDoc(collection(db, "matches"), newMatch);
 
       handleMatchModalClose();

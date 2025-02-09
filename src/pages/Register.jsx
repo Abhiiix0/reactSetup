@@ -29,7 +29,7 @@ const Register = () => {
           PNumber: data?.phone,
         });
         toast.success("User Registration successfully");
-        Navigate("/login");
+        Navigate("/");
       }
     } catch (error) {
       console.log(error);
@@ -39,7 +39,7 @@ const Register = () => {
 
   return (
     <div
-      className="relative min-h-screen bg-cover bg-center"
+      className="relative pt-[80px] min-h-screen bg-cover bg-center"
       style={{
         backgroundImage: `url('https://images.unsplash.com/photo-1489944440615-453fc2b6a9a9?q=80&w=1923&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')`,
       }}
@@ -48,7 +48,7 @@ const Register = () => {
       <div className="absolute inset-0 bg-black/60"></div>
       <div className="relative z-10">
         <Navbar />
-        <div className="flex justify-center items-center min-h-screen">
+        <div className="flex  justify-center min-h-screen items-center ">
           <div className="w-full max-w-[350px] p-6 bg-white rounded-2xl shadow-xl">
             <h2 className="text-xl font-bold text-center mb-6">Register</h2>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
