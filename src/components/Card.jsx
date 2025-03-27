@@ -1,4 +1,5 @@
-const Card = () => {
+/* eslint-disable react/prop-types */
+const Card = ({ prd }) => {
   return (
     <div className=" bg-slate-200 w-fit overflow-hidden shadow hover:scale-[1.02] transition-all duration-200 ease-in-out cursor-pointer rounded-lg border">
       <img
@@ -8,8 +9,10 @@ const Card = () => {
       />
       <div className=" flex flex-col gap-1 p-2 mt-1.5">
         <p>Abhishek Nayak</p>
-        <p>Age 19, Blood Group A+</p>
-        <p>Phone Number: 1234567890</p>
+        <p>
+          Age : {prd?.age} | Blood Group : {prd?.bloodGroup}
+        </p>
+        <p>Phone Number : {prd?.contact}</p>
       </div>
     </div>
   );

@@ -1,6 +1,10 @@
+/* eslint-disable no-unused-vars */
 import { useForm } from "react-hook-form";
 import { useState } from "react";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth, db } from "../firebaseConfig/firebase"; // Import Firebase auth
 import { FaUser, FaEnvelope, FaLock, FaPhone } from "react-icons/fa";
+import { doc, setDoc } from "firebase/firestore";
 
 const Registration = () => {
   const {
@@ -9,13 +13,39 @@ const Registration = () => {
     formState: { errors },
   } = useForm();
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const onSubmit = async (data) => {
     setLoading(true);
-    console.log("Registration Data:", data);
-    setTimeout(() => setLoading(false), 2000);
-  };
+    setErrorMessage("");
 
+    try {
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        data.email,
+        data.password
+      );
+      const user = userCredential.user;
+      console.log("User registered:", user);
+
+      // Save additional data in Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        fullName: data.fullName,
+        email: data.email,
+        phone: data.phone,
+        uid: user.uid,
+        createdAt: new Date(),
+      });
+
+      alert("Registration successful!");
+      alert("Registration successful!");
+    } catch (error) {
+      console.error("Error registering:", error.message);
+      setErrorMessage(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className="flex items-center justify-center min-h-screen bg-pink-100 px-6">
       <div className="w-full max-w-sm p-6 bg-white shadow-md rounded-lg">

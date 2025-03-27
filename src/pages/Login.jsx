@@ -1,6 +1,9 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/no-unescaped-entities */
 import { useForm } from "react-hook-form";
 import { useState } from "react";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebaseConfig/firebase"; // Import Firebase auth
 import { FaLock, FaUser } from "react-icons/fa";
 
 const Login = () => {
@@ -10,11 +13,52 @@ const Login = () => {
     formState: { errors },
   } = useForm();
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const onSubmit = async (data) => {
+    console.log(data);
     setLoading(true);
-    console.log("Login Data:", data);
-    setTimeout(() => setLoading(false), 2000);
+    setErrorMessage("");
+
+    try {
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        data?.username, // Ensure using email instead of username
+        data?.password
+      );
+      console.log("User logged in:", userCredential.user);
+      alert("Login successful!");
+    } catch (error) {
+      console.error("Login error:", error.code);
+
+      // Firebase authentication error handling
+      switch (error.code) {
+        case "auth/invalid-email":
+          alert("Invalid email format. Please enter a valid email.");
+          break;
+        case "auth/invalid-credential":
+          alert("Invalid credential. Please enter a valid credential.");
+          break;
+        case "auth/user-not-found":
+          alert("No account found with this email. Please sign up.");
+          break;
+        case "auth/wrong-password":
+          alert("Incorrect password. Please try again.");
+          break;
+        case "auth/user-disabled":
+          alert("This account has been disabled. Contact support.");
+          break;
+        case "auth/too-many-requests":
+          alert("Too many failed attempts. Try again later.");
+          break;
+        default:
+          alert("An unexpected error occurred. Please try again.");
+          break;
+      }
+      // (errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

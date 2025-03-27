@@ -1,8 +1,22 @@
+import { useEffect, useState } from "react";
 import { AboutSection } from "../components/AboutSection";
 import Card from "../components/Card";
 import HeroBanner from "../components/HeroBanner";
+import { fetchDonors } from "../lib/helperFunctions";
 
 const Home = () => {
+  const [donors, setDonors] = useState([]);
+
+  useEffect(() => {
+    const getDonors = async () => {
+      const data = await fetchDonors();
+      console.log(data);
+      setDonors(data);
+    };
+
+    getDonors();
+  }, []);
+
   return (
     <div className=" bg-pink-100 min-h-[100vh] ">
       <HeroBanner />
@@ -43,8 +57,8 @@ const Home = () => {
             Blood Donner
           </p>
           <div className=" flex flex-wrap items-center justify-center gap-4">
-            {[1, 2, 3, 4].map((prd) => (
-              <Card key={prd} />
+            {donors.map((prd, i) => (
+              <Card key={i} prd={prd} />
             ))}
           </div>
         </section>

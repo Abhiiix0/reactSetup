@@ -4,6 +4,8 @@ import Login from "./pages/Login";
 import Registration from "./pages/Registration";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import Account from "./pages/Account";
+import ProtectedRoute from "./firebaseConfig/ProtectedRoute.jsx";
 
 const App = () => {
   return (
@@ -13,6 +15,14 @@ const App = () => {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Registration />} />
+        <Route
+          path="/account"
+          element={
+            <ProtectedRoute>
+              <Account />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
       <Footer />
     </Router>
