@@ -55,7 +55,6 @@ const Login = () => {
           alert("An unexpected error occurred. Please try again.");
           break;
       }
-      // (errorMessage);
     } finally {
       setLoading(false);
     }

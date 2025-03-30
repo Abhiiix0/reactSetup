@@ -1,13 +1,12 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { Modal, Button, Select, Upload, Table } from "antd";
+import { Modal, Button, Upload, Table } from "antd";
 import {
   UploadOutlined,
   EditOutlined,
   DeleteOutlined,
 } from "@ant-design/icons";
-import BloodDonor from "../components/bloodDonar";
 import {
   getFirestore,
   collection,
@@ -19,10 +18,9 @@ import {
 } from "firebase/firestore";
 import { auth } from "../firebaseConfig/firebase";
 
-const { Option } = Select;
 const db = getFirestore();
 
-const OrganDonor = () => {
+const BloodDonor = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [donors, setDonors] = useState([]);
@@ -39,27 +37,26 @@ const OrganDonor = () => {
     defaultValues: {
       name: "",
       age: "",
-      organs: [],
+      bloodGroup: "",
       contact: "",
       imageUrl: "",
     },
   });
 
   useEffect(() => {
-    fetchUserOrganDonors();
+    fetchUserDonors();
   }, []);
 
-  const fetchUserOrganDonors = async () => {
+  const fetchUserDonors = async () => {
     try {
       const user = auth.currentUser;
       if (!user) return;
 
-      const querySnapshot = await getDocs(collection(db, "OrganDonors"));
+      const querySnapshot = await getDocs(collection(db, "donors"));
       const userDonors = querySnapshot.docs
         .map((doc) => ({ id: doc.id, ...doc.data() }))
         .filter((donor) => donor.userId === user.uid);
       setDonors(userDonors);
-      console.log(userDonors);
     } catch (error) {
       console.error("Error fetching donors:", error);
     }
@@ -79,17 +76,9 @@ const OrganDonor = () => {
     try {
       const response = await fetch(
         `https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload`,
-        {
-          method: "POST",
-          body: formData,
-        }
+        { method: "POST", body: formData }
       );
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Cloudinary upload failed: ${errorText}`);
-      }
-
+      if (!response.ok) throw new Error("Cloudinary upload failed");
       const data = await response.json();
       return data.secure_url;
     } catch (error) {
@@ -107,7 +96,6 @@ const OrganDonor = () => {
 
   const onSubmit = async (data) => {
     let imageUrl = data.imageUrl;
-
     if (file) {
       const uploadedUrl = await uploadToCloudinary(file);
       if (uploadedUrl) {
@@ -117,21 +105,19 @@ const OrganDonor = () => {
 
     try {
       if (isEditMode) {
-        await updateDoc(doc(db, "OrganDonors", editingId), {
-          ...data,
-          imageUrl,
-        });
+        await updateDoc(doc(db, "donors", editingId), { ...data, imageUrl });
       } else {
-        await addDoc(collection(db, "OrganDonors"), {
+        await addDoc(collection(db, "donors"), {
           ...data,
           imageUrl,
+          bloodDonation: true,
           userId: auth.currentUser?.uid || "guest",
         });
       }
 
       setIsModalOpen(false);
       resetForm();
-      fetchUserOrganDonors();
+      fetchUserDonors();
     } catch (error) {
       console.error("Error saving data:", error);
     }
@@ -146,8 +132,8 @@ const OrganDonor = () => {
 
   const handleDelete = async (id) => {
     try {
-      await deleteDoc(doc(db, "OrganDonors", id));
-      fetchUserOrganDonors();
+      await deleteDoc(doc(db, "donors", id));
+      fetchUserDonors();
     } catch (error) {
       console.error("Error deleting donor:", error);
     }
@@ -163,11 +149,7 @@ const OrganDonor = () => {
     },
     { title: "Name", dataIndex: "name" },
     { title: "Age", dataIndex: "age" },
-    {
-      title: "Organs",
-      dataIndex: "organs",
-      render: (organs) => (Array.isArray(organs) ? organs.join(", ") : "N/A"),
-    },
+    { title: "Blood Group", dataIndex: "bloodGroup" },
     { title: "Contact", dataIndex: "contact" },
     {
       title: "Actions",
@@ -189,80 +171,70 @@ const OrganDonor = () => {
   ];
 
   return (
-    <div>
-      <BloodDonor />
+    <div className="p-5">
+      <Button
+        type="primary"
+        onClick={() => setIsModalOpen(true)}
+        className="mb-4"
+      >
+        Become a Donor
+      </Button>
+      <Table
+        dataSource={donors}
+        columns={columns}
+        rowKey="id"
+        pagination={{ pageSize: 5 }}
+      />
 
-      <div className="p-5">
-        <Button
-          type="primary"
-          onClick={() => setIsModalOpen(true)}
-          className="mb-4"
-        >
-          Become an Organ Donor
-        </Button>
-        <Table
-          dataSource={donors}
-          columns={columns}
-          rowKey="id"
-          pagination={{ pageSize: 5 }}
-        />
-        <Modal
-          title={isEditMode ? "Edit Donor" : "Organ Donation Form"}
-          open={isModalOpen}
-          onOk={handleSubmit(onSubmit)}
-          onCancel={() => {
-            resetForm();
-            setIsModalOpen(false);
-          }}
-        >
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <input
-              {...register("name", { required: "Full Name is required" })}
-              placeholder="Full Name"
-              className="w-full border p-2 mb-2"
-            />
-            <input
-              {...register("age", { required: "Age is required" })}
-              type="number"
-              placeholder="Age"
-              className="w-full border p-2 mb-2"
-            />
-            <Select
-              mode="multiple"
-              placeholder="Select Organs"
-              className="w-full border p-2 mb-2"
-              onChange={(value) => setValue("organs", value)} // Manually updating organs
-              options={[
-                { label: "Kidney", value: "Kidney" },
-                { label: "Liver", value: "Liver" },
-                { label: "Heart", value: "Heart" },
-                { label: "Lungs", value: "Lungs" },
-                { label: "Pancreas", value: "Pancreas" },
-                { label: "Cornea", value: "Cornea" },
-                { label: "Skin", value: "Skin" },
-                { label: "Bone", value: "Bone" },
-                { label: "Intestine", value: "Intestine" },
-              ]}
-            />
+      <Modal
+        title={isEditMode ? "Edit Donor" : "Blood Donation Form"}
+        open={isModalOpen}
+        onOk={handleSubmit(onSubmit)}
+        onCancel={() => {
+          resetForm();
+          setIsModalOpen(false);
+        }}
+      >
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <input
+            {...register("name", { required: "Full Name is required" })}
+            placeholder="Full Name"
+            className="w-full border p-2 mb-2"
+          />
+          <p className="text-red-500">{errors.name?.message}</p>
 
-            <input
-              {...register("contact", { required: "Contact is required" })}
-              type="tel"
-              placeholder="Contact Number"
-              className="w-full border p-2 mb-2"
-            />
-            <Upload
-              beforeUpload={() => false}
-              onChange={handleFileChange}
-              maxCount={1}
-            >
-              <Button icon={<UploadOutlined />}>Upload Image</Button>
-            </Upload>
-          </form>
-        </Modal>
-      </div>
+          <input
+            {...register("age", { required: "Age is required" })}
+            type="number"
+            placeholder="Age"
+            className="w-full border p-2 mb-2"
+          />
+          <p className="text-red-500">{errors.age?.message}</p>
+
+          <select
+            {...register("bloodGroup", { required: "Blood Group is required" })}
+            className="w-full border p-2 mb-2"
+          >
+            <option value="">Select Blood Group</option>
+            {["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"].map((group) => (
+              <option key={group} value={group}>
+                {group}
+              </option>
+            ))}
+          </select>
+          <p className="text-red-500">{errors.bloodGroup?.message}</p>
+
+          <Upload
+            beforeUpload={() => false}
+            onChange={handleFileChange}
+            maxCount={1}
+          >
+            <Button icon={<UploadOutlined />}>Upload Image (Optional)</Button>
+          </Upload>
+        </form>
+      </Modal>
     </div>
   );
 };
 
-export default OrganDonor;
+export default BloodDonor;

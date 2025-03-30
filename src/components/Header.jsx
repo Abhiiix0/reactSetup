@@ -27,9 +27,6 @@ const Header = () => {
     <div className="border flex justify-between items-center h-24 w-full px-4 md:px-10 xl:px-20 bg-white">
       <Link to="/">OrganSecure</Link>
       <ul className="hidden md:flex items-center justify-center gap-10">
-        <li>
-          <Link to="/Donate">Donate</Link>
-        </li>
         {user ? (
           <>
             <li>
@@ -67,11 +64,6 @@ const Header = () => {
         onClose={() => setmenuOpen(!menuOpen)}
       >
         <ul className="flex flex-col gap-4">
-          <li>
-            <Link to="/Donate" onClick={() => setmenuOpen(false)}>
-              Donate
-            </Link>
-          </li>
           {user ? (
             <>
               <li>
