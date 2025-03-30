@@ -64,12 +64,13 @@ const BloodDonor = () => {
   };
 
   const handleFileChange = (info) => {
-    if (info.file && info.file.originFileObj) {
-      setFile(info.file.originFileObj);
+    if (info.file && info.file) {
+      setFile(info.file);
     }
   };
 
   const uploadToCloudinary = async (file) => {
+    console.log(file);
     const formData = new FormData();
     formData.append("file", file);
     formData.append("upload_preset", "organDonation");
@@ -81,6 +82,7 @@ const BloodDonor = () => {
       );
       if (!response.ok) throw new Error("Cloudinary upload failed");
       const data = await response.json();
+      console.log(data);
       return data.secure_url;
     } catch (error) {
       console.error("Error uploading to Cloudinary:", error);
@@ -97,8 +99,10 @@ const BloodDonor = () => {
 
   const onSubmit = async (data) => {
     let imageUrl = data.imageUrl;
-    if (file) {
+    if (file || imageUrl === "") {
+      console.log("hi");
       const uploadedUrl = await uploadToCloudinary(file);
+      console.log(uploadedUrl);
       if (uploadedUrl) {
         imageUrl = uploadedUrl;
       }
@@ -224,7 +228,12 @@ const BloodDonor = () => {
             ))}
           </select>
           <p className="text-red-500">{errors.bloodGroup?.message}</p>
-
+          <input
+            {...register("contact", { required: "Contact is required" })}
+            type="tel"
+            placeholder="Contact Number"
+            className="w-full border p-2 mb-2"
+          />
           <Upload
             beforeUpload={() => false}
             onChange={handleFileChange}

@@ -65,8 +65,8 @@ const OrganDonor = () => {
   };
 
   const handleFileChange = (info) => {
-    if (info.file && info.file.originFileObj) {
-      setFile(info.file.originFileObj);
+    if (info.file && info.file) {
+      setFile(info.file);
     }
   };
 
@@ -137,10 +137,12 @@ const OrganDonor = () => {
   };
 
   const handleEdit = (donor) => {
+    console.log(donor.organs);
     reset(donor);
     setEditingId(donor.id);
     setIsEditMode(true);
     setIsModalOpen(true);
+    setValue("organs", donor.organs || []);
   };
 
   const handleDelete = async (id) => {
