@@ -59,7 +59,6 @@ const OrganDonor = () => {
         .map((doc) => ({ id: doc.id, ...doc.data() }))
         .filter((donor) => donor.userId === user.uid);
       setDonors(userDonors);
-      console.log(userDonors);
     } catch (error) {
       console.error("Error fetching donors:", error);
     }
@@ -78,7 +77,7 @@ const OrganDonor = () => {
 
     try {
       const response = await fetch(
-        `https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload`,
+        `https://api.cloudinary.com/v1_1/docbwwhpj/image/upload`,
         {
           method: "POST",
           body: formData,

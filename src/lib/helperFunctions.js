@@ -19,3 +19,16 @@ export const fetchDonors = async () => {
     return [];
   }
 };
+
+export const fetchOrganDonors = async () => {
+  try {
+    const donorsCollection = collection(db, "OrganDonors"); // Correct Firestore reference
+    const donorsQuery = query(donorsCollection); // Optional filtering
+    const querySnapshot = await getDocs(donorsQuery);
+
+    return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error("Error fetching OrganDonors donors: ", error);
+    return [];
+  }
+};

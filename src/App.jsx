@@ -6,6 +6,8 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Account from "./pages/Account";
 import ProtectedRoute from "./firebaseConfig/ProtectedRoute.jsx";
+import OrganDonar from "./pages/OrganDonar.jsx";
+import BloodDonorPage from "./pages/BloodDonorPage.jsx";
 
 const App = () => {
   return (
@@ -15,6 +17,9 @@ const App = () => {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Registration />} />
+        <Route path="/blood-donar" element={<BloodDonorPage />} />
+        <Route path="/organ-donar" element={<OrganDonar />} />
+
         <Route
           path="/account"
           element={

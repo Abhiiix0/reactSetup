@@ -5,6 +5,7 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "../firebaseConfig/firebase"; // Import Firebase auth
 import { FaUser, FaEnvelope, FaLock, FaPhone } from "react-icons/fa";
 import { doc, setDoc } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
 
 const Registration = () => {
   const {
@@ -12,6 +13,8 @@ const Registration = () => {
     handleSubmit,
     formState: { errors },
   } = useForm();
+  const navigate = useNavigate(); // Initialize navigate
+
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -26,7 +29,6 @@ const Registration = () => {
         data.password
       );
       const user = userCredential.user;
-      console.log("User registered:", user);
 
       // Save additional data in Firestore
       await setDoc(doc(db, "users", user.uid), {
@@ -38,7 +40,7 @@ const Registration = () => {
       });
 
       alert("Registration successful!");
-      alert("Registration successful!");
+      navigate("/");
     } catch (error) {
       console.error("Error registering:", error.message);
       setErrorMessage(error.message);

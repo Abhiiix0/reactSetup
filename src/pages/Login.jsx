@@ -5,6 +5,7 @@ import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebaseConfig/firebase"; // Import Firebase auth
 import { FaLock, FaUser } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const {
@@ -14,9 +15,9 @@ const Login = () => {
   } = useForm();
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const navigate = useNavigate(); // Initialize navigate
 
   const onSubmit = async (data) => {
-    console.log(data);
     setLoading(true);
     setErrorMessage("");
 
@@ -26,7 +27,7 @@ const Login = () => {
         data?.username, // Ensure using email instead of username
         data?.password
       );
-      console.log("User logged in:", userCredential.user);
+      navigate("/");
       alert("Login successful!");
     } catch (error) {
       console.error("Login error:", error.code);
